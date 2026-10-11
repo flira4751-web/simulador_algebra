@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desafío Álgebra: El misterio de la balanza</title>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --secondary: #0d9488;
+            --accent: #f59e0b;
+            --purple: #7c3aed;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #334155;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        header h1 {
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+        .main-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            max-width: 1100px;
+            width: 100%;
+        }
+        @media (max-width: 768px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+        /* Balanza Visual */
+        .scale-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            height: 250px;
+            justify-content: flex-end;
+        }
+        .scale-beam {
+            width: 80%;
+            height: 8px;
+            background-color: var(--primary);
+            position: absolute;
+            top: 50px;
+            transition: transform 0.5s ease;
+        }
+        .scale-fulcrum {
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-bottom: 60px solid var(--secondary);
+            position: absolute;
+            top: 58px;
+        }
+        .scale-pans {
+            display: flex;
+            justify-content: space-between;
+            width: 90%;
+            position: absolute;
+            top: 60px;
+        }
+        .pan {
+            width: 120px;
+            min-height: 80px;
+            border: 3px dashed var(--secondary);
+            border-top: none;
+            border-radius: 0 0 15px 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            padding: 10px;
+            align-content: flex-start;
+            justify-content: center;
+            background: rgba(13, 148, 136, 0.05);
+        }
+        /* Bloques algebraicos */
+        .block-x {
+            background-color: var(--purple);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .block-unit {
+            background-color: var(--accent);
+            color: white;
+            width: 22px;
+            height: 22px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        /* Controles y Panel */
+        .controls-group {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        button {
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background-color: #0f766e;
+        }
+        select, input {
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+        }
+        .chat-box {
+            background-color: #f1f5f9;
+            border-radius: 8px;
+            padding: 10px;
+            height: 120px;
+            overflow-y: auto;
+            font-size: 14px;
+            margin-top: 15px;
+            border-left: 4px solid var(--accent);
+        }
+        .status-bar {
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Desafío Álgebra: El misterio de la balanza</h1>
+        <p>Descubre el valor de la incógnita manteniendo el equilibrio de la igualdad.</p>
+    </header>
+
+    <div class="main-container">
+        <!-- Área Izquierda: Balanza Visual -->
+        <div class="card">
+            <div class="status-bar">Nivel 1: Aprendiz del equilibrio</div>
+            <div class="scale-container">
+                <div class="scale-fulcrum"></div>
+                <div id="scaleBeam" class="scale-beam"></div>
+                <div class="scale-pans">
+                    <div id="leftPan" class="pan">
+                        <!-- Se llena dinámicamente -->
+                    </div>
+                    <div id="rightPan" class="pan">
+                        <!-- Se llena dinámicamente -->
+                    </div>
+                </div>
+            </div>
+            <p style="text-align: center; margin-top: 30px;">Ecuación actual: <strong id="eqDisplay">x + 2 = 5</strong></p>
+        </div>
+
+        <!-- Área Derecha: Panel Algebraico y Tutor IA Simulado -->
+        <div class="card">
+            <h3>Panel de Operaciones</h3>
+            <p>Selecciona una operación válida para ambos lados:</p>
+            
+            <div class="controls-group">
+                <select id="operationType">
+                    <option value="sub">Restar</option>
+                    <option value="add">Sumar</option>
+                </select>
+                <input type="number" id="opValue" value="2" min="1" max="10" style="width: 60px;">
+                <button onclick="aplicarOperacion()">Aplicar</button>
+            </div>
+
+            <div class="controls-group" style="margin-top: 15px;">
+                <button onclick="reiniciarJuego()" style="background-color: #64748b;">Reiniciar</button>
+                <button onclick="pedirPista()" style="background-color: var(--accent);">Pedir Pista</button>
+            </div>
+
+            <div class="chat-box" id="algebraBotChat">
+                <strong>ÁlgebraBot:</strong> ¡Hola! Observa la balanza. ¿Qué operación harías para dejar la 'x' sola en el platillo izquierdo?
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Estado inicial del juego: x + 2 = 5
+        let estado = {
+            xCount: 1,
+            leftUnits: 2,
+            rightUnits: 5,
+            targetX: 3
+        };
+
+        function actualizarVisuales() {
+            const leftPan = document.getElementById('leftPan');
+            const rightPan = document.getElementById('rightPan');
+            const eqDisplay = document.getElementById('eqDisplay');
+            
+            leftPan.innerHTML = '';
+            rightPan.innerHTML = '';
+
+            // Dibujar lado izquierdo
+            for(let i = 0; i < estado.xCount; i++) {
+                leftPan.innerHTML += `<div class="block-x">x</div>`;
+            }
+            for(let i = 0; i < estado.leftUnits; i++) {
+                leftPan.innerHTML += `<div class="block-unit">1</div>`;
+            }
+
+            // Dibujar lado derecho
+            for(let i = 0; i < estado.rightUnits; i++) {
+                rightPan.innerHTML += `<div class="block-unit">1</div>`;
+            }
+
+            // Actualizar texto ecuación
+            let leftStr = (estado.xCount > 0 ? estado.xCount + 'x' : '') + (estado.leftUnits !== 0 ? (estado.leftUnits > 0 ? ' + ' + estado.leftUnits : ' - ' + Math.abs(estado.leftUnits)) : '');
+            eqDisplay.textContent = `${leftStr} = ${estado.rightUnits}`;
+
+            // Verificar condición de victoria
+            if(estado.xCount === 1 && estado.leftUnits === 0 && estado.rightUnits === estado.targetX) {
+                document.getElementById('algebraBotChat').innerHTML += `<br><strong>ÁlgebraBot:</strong> ¡Excelente! Has aislado la 'x'. El valor es x = ${estado.targetX}. ¡Reto superado!`;
+            }
+        }
+
+        function aplicarOperacion() {
+            const type = document.getElementById('operationType').value;
+            const val = parseInt(document.getElementById('opValue').value);
+            const chat = document.getElementById('algebraBotChat');
+
+            if(type === 'sub') {
+                estado.leftUnits -= val;
+                estado.rightUnits -= val;
+                chat.innerHTML = `<br><strong>ÁlgebraBot:</strong> Restaste ${val} en ambos miembros. La igualdad se conserva perfectamente porque aplicamos la misma acción a los dos lados.`;
+            } else if(type === 'add') {
+                estado.leftUnits += val;
+                estado.rightUnits += val;
+                chat.innerHTML = `<br><strong>ÁlgebraBot:</strong> Sumaste ${val} en ambos miembros.`;
+            }
+            actualizarVisuales();
+        }
+
+        function pedirPista() {
+            const chat = document.getElementById('algebraBotChat');
+            chat.innerHTML += `<br><strong>ÁlgebraBot (Pista):</strong> Para eliminar el término constante positivo del lado izquierdo, usa la operación inversa (resta) con ese mismo número.`;
+        }
+
+        function reiniciarJuego() {
+            estado = { xCount: 1, leftUnits: 2, rightUnits: 5, targetX: 3 };
+            document.getElementById('algebraBotChat').innerHTML = `<strong>ÁlgebraBot:</strong> Reiniciamos el reto. ¿Qué operación aplicamos?`;
+            actualizarVisuales();
+        }
+
+        // Inicializar al cargar
+        actualizarVisuales();
+    </script>
+</body>
+</html>
